@@ -1,0 +1,22 @@
+{
+  "project_name": "SiteFlow (working name)",
+  "status": "Pre-build / Paid Validation",
+  "core": [
+    "WhatsApp capture",
+    "Supervisor review",
+    "Finance review",
+    "Multiple advances",
+    "Weekly close",
+    "BOQ Lite",
+    "Client IPC",
+    "Client portal"
+  ],
+  "not_in_mvp": [
+    "Full ERP",
+    "General Ledger",
+    "Payroll",
+    "HR",
+    "Advanced inventory",
+    "Native mobile apps"
+  ]
+}
