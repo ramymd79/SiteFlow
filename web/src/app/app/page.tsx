@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DemoPathCard } from "@/components/demo-path";
 import { Card, PageTitle } from "@/components/ui";
 import { remainingOnAdvance, underReviewOnAdvance } from "@/lib/logic";
 import { formatMoney } from "@/lib/money";
@@ -138,6 +139,8 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
+      <DemoPathCard showReset />
+
       <div>
         <PageTitle
           title="اعمل إيه دلوقتي"

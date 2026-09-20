@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DEMO_EXAMPLE, DemoPathCard } from "@/components/demo-path";
 import { Button, Card, Field, PageTitle, StatusPill, inputClass } from "@/components/ui";
 import { parseEgp } from "@/lib/money";
 import { useStore } from "@/lib/store";
@@ -17,7 +18,6 @@ export default function CapturePage() {
   const [petty, setPetty] = useState(false);
   const [fileName, setFileName] = useState("");
   const [fileData, setFileData] = useState("");
-  const [moreOpen, setMoreOpen] = useState(false);
   const [lastId, setLastId] = useState<string | null>(null);
   const [done, setDone] = useState("");
 
@@ -26,8 +26,9 @@ export default function CapturePage() {
       ? state.captures
       : state.captures.filter((c) => c.createdBy === currentUser?.id);
 
-  const waiting =
-    mine.filter((c) => c.status === "draft" || c.status === "returned").length;
+  const waiting = mine.filter(
+    (c) => c.status === "draft" || c.status === "returned",
+  ).length;
 
   function resetForm() {
     setText("");
@@ -36,17 +37,29 @@ export default function CapturePage() {
     setPetty(false);
     setFileName("");
     setFileData("");
-    setMoreOpen(false);
+  }
+
+  function fillDemoExample() {
+    setText(DEMO_EXAMPLE.text);
+    setAmount(DEMO_EXAMPLE.amount);
+    setVendor(DEMO_EXAMPLE.vendor);
+    if (projects[0]) setProjectId(projects[0].id);
+    setDone("اتملأ المثال. راجعه واضغط «احفظ كمسودة».");
   }
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+      <DemoPathCard />
+
       <PageTitle
         title="سجّل مصروف من الموقع"
-        hint="زي ما بتعمل في الواقع: صورة أو وصف، مبلغ، ومشروع. الأصل يتحفظ زي ما هو."
+        hint="هنا المهندس بيكتب. لو مش عايز تكتب بإيدك، اضغط «املأ مثال التجربة»."
       />
 
       <Card>
+        <Button type="button" variant="ghost" className="mb-4 w-full" onClick={fillDemoExample}>
+          املأ مثال التجربة
+        </Button>
         <form
           className="space-y-5"
           onSubmit={(e) => {
@@ -65,7 +78,7 @@ export default function CapturePage() {
             });
             resetForm();
             setLastId(id);
-            setDone("اتحفظت. ابعتها للمشرف من تحت عشان تكمل.");
+            setDone("اتحفظت. انزل تحت على المسودة الجديدة واضغط «ابعتها للمشرف».");
           }}
         >
           <section className="space-y-3">
@@ -99,20 +112,30 @@ export default function CapturePage() {
                 />
               </label>
               <p className="text-xs text-stone-500">
-                مش إجباري، بس بيسهّل المراجعة. الأصل ما بيتامسحش.
+                مش إجباري. الأصل ما بيتامسحش.
               </p>
             </div>
           </section>
 
           <section className="space-y-3">
-            <p className="text-xs font-medium text-emerald-900">٢ — المبلغ والمشروع</p>
+            <p className="text-xs font-medium text-emerald-900">
+              ٢ — المبلغ والمورد والمشروع
+            </p>
             <Field label="المبلغ بالجنيه">
               <input
                 className={inputClass}
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="850"
+                placeholder="600"
+              />
+            </Field>
+            <Field label="المورد">
+              <input
+                className={inputClass}
+                value={vendor}
+                onChange={(e) => setVendor(e.target.value)}
+                placeholder="اسم المحل أو المقاول"
               />
             </Field>
             <Field label="المشروع">
@@ -128,37 +151,15 @@ export default function CapturePage() {
                 ))}
               </select>
             </Field>
-          </section>
-
-          <section>
-            <button
-              type="button"
-              className="text-sm text-stone-600 underline"
-              onClick={() => setMoreOpen((v) => !v)}
-            >
-              {moreOpen ? "إخفاء التفاصيل الزيادة" : "تفاصيل زيادة (اختياري)"}
-            </button>
-            {moreOpen ? (
-              <div className="mt-3 space-y-3">
-                <Field label="المورد">
-                  <input
-                    className={inputClass}
-                    value={vendor}
-                    onChange={(e) => setVendor(e.target.value)}
-                    placeholder="اسم المحل أو المقاول"
-                  />
-                </Field>
-                <label className="flex min-h-11 items-center gap-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="size-5"
-                    checked={petty}
-                    onChange={(e) => setPetty(e.target.checked)}
-                  />
-                  بلا فاتورة (نثريات)
-                </label>
-              </div>
-            ) : null}
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="size-5"
+                checked={petty}
+                onChange={(e) => setPetty(e.target.checked)}
+              />
+              بلا فاتورة (نثريات)
+            </label>
           </section>
 
           <Button type="submit" className="w-full">
@@ -194,21 +195,27 @@ export default function CapturePage() {
                 <StatusPill status={c.status} />
               </div>
               <p className="text-xs text-stone-500">
-                {c.originalFileName ? `${c.originalFileName} · ` : ""}
+                {c.vendorName ? `${c.vendorName} · ` : ""}
                 {projects.find((p) => p.id === c.projectId)?.name ?? ""}
               </p>
               {c.status === "draft" || c.status === "returned" ? (
                 <Button
                   className={`w-full ${
-                    lastId === c.id ? "ring-2 ring-emerald-700 ring-offset-2" : ""
+                    lastId === c.id
+                      ? "ring-2 ring-emerald-700 ring-offset-2"
+                      : ""
                   }`}
                   onClick={() => {
                     sendToSupervisor(c.id);
-                    setDone("اتبعتت للمشرف. هو اللي يراجع قبل الحسابات.");
+                    setDone(
+                      "اتبعتت للمشرف. اخرج وادخل بحساب المشرف عشان تكمل.",
+                    );
                     setLastId(null);
                   }}
                 >
-                  {lastId === c.id ? "الخطوة الجاية: ابعتها للمشرف" : "ابعتها للمشرف"}
+                  {lastId === c.id
+                    ? "الخطوة الجاية: ابعتها للمشرف"
+                    : "ابعتها للمشرف"}
                 </Button>
               ) : null}
             </li>
