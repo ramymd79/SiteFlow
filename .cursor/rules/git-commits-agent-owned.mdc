@@ -23,6 +23,15 @@ The user does not want to decide when to commit. The agent must handle commits.
 - Short commit message focused on why
 - Prefer one commit per completed slice, not per tiny edit
 
-## Push
-- Do **not** push unless the user asked, or the task itself is publishing/sharing (for example updating the public demo link)
-- After a local commit, a brief note is enough; do not ask the user to click Commit in the UI
+## Push — also agent-owned
+The user does not want to decide when to push either. Push without asking when:
+- A meaningful local commit (or set of commits) is ready and the work should be backed up on the remote
+- The public demo / Pages / shareable link needs updating
+- Ending a substantial work slice where leaving commits only local would risk loss
+
+Do **not** push:
+- Broken or untested mid-work
+- Secrets
+- Force-push, or push to rewrite shared history, unless the user explicitly ordered that
+
+After push, say briefly that it is on the remote. Do not ask the user to click Commit or Push in the UI.
