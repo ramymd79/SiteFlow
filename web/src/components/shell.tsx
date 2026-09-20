@@ -125,11 +125,33 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh bg-stone-100 text-stone-900">
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white px-4 py-3 md:hidden">
-        <p className="text-xs text-stone-500">SiteFlow</p>
-        <p className="truncate text-lg font-semibold">{pageTitle}</p>
-        <p className="truncate text-xs text-stone-500">
-          {currentUser.name} — {roleLabel(currentUser.role)}
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-stone-500">SiteFlow</p>
+            <p className="truncate text-lg font-semibold">{pageTitle}</p>
+            <p className="truncate text-xs text-stone-500">
+              {currentUser.name} — {roleLabel(currentUser.role)}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2">
+            {currentUser.role === "owner" ? (
+              <button
+                type="button"
+                className="rounded-lg bg-stone-100 px-3 py-2 text-xs font-medium text-stone-800"
+                onClick={() => resetDemo()}
+              >
+                من الصفر
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="rounded-lg bg-stone-900 px-3 py-2 text-xs font-medium text-white"
+              onClick={goOut}
+            >
+              خروج
+            </button>
+          </div>
+        </div>
       </header>
 
       <aside className="fixed inset-y-0 right-0 z-20 hidden w-56 flex-col border-l border-stone-200 bg-white md:flex">
