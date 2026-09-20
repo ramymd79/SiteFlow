@@ -109,7 +109,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           className="w-full rounded-lg bg-stone-100 px-3 py-3 text-sm"
           onClick={() => resetDemo()}
         >
-          إعادة بيانات التجربة
+          ابدأ من الصفر
         </button>
       ) : null}
       <button
@@ -117,7 +117,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         className="w-full rounded-lg bg-stone-900 px-3 py-3 text-sm font-medium text-white"
         onClick={goOut}
       >
-        خروج — غيّر الدور من هنا
+        خروج
       </button>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DemoPathCard } from "@/components/demo-path";
 import {
   Button,
   Card,
@@ -322,7 +321,6 @@ export default function ReviewPage() {
 
   return (
     <div className="space-y-8">
-      <DemoPathCard />
       <PageTitle
         title="المراجعة"
         hint="الفلوس ما بتتحركش غير لما حد يعتمدها. المشرف يصحّح، الحسابات تعتمد."

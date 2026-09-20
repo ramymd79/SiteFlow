@@ -7,16 +7,16 @@ import { DEMO_PASSWORD } from "@/lib/seed";
 import { useStore } from "@/lib/store";
 
 const ACCOUNTS = [
-  ["مالك", "owner@demo.siteflow", "يشوف الفلوس والناقص"],
-  ["حسابات", "finance@demo.siteflow", "يعتمد أو يرجع المصروف"],
-  ["مشرف", "supervisor@demo.siteflow", "يراجع ويبعت للحسابات"],
   ["مهندس", "engineer@demo.siteflow", "يسجّل مصروف من الموقع"],
+  ["مشرف", "supervisor@demo.siteflow", "يراجع ويبعت للحسابات"],
+  ["حسابات", "finance@demo.siteflow", "يعتمد أو يرجع المصروف"],
+  ["مالك", "owner@demo.siteflow", "يشوف الفلوس والناقص"],
 ] as const;
 
 export default function LoginPage() {
   const { login, logout, currentUser, ready } = useStore();
   const router = useRouter();
-  const [email, setEmail] = useState("owner@demo.siteflow");
+  const [email, setEmail] = useState("engineer@demo.siteflow");
   const [password, setPassword] = useState(DEMO_PASSWORD);
   const [error, setError] = useState("");
 
@@ -63,24 +63,22 @@ export default function LoginPage() {
             فلوس العهد: راحت فين؟ ومين مسؤول عن الخطوة الجاية قبل الإقفال؟
           </p>
           <p className="mt-2 text-sm text-stone-600">
-            ابدأ من الأزرار الكبيرة تحت. جوه البرنامج هتلاقي «مسار التجربة
-            المظبوط» مكتوب على الشاشة. كلمة السر: {DEMO_PASSWORD}
+            البرنامج فاضي من المصروفات. ادخل كمهندس وسجّل أول مصروف بنفسك.
+            كلمة السر لو دخلت يدوي: {DEMO_PASSWORD}
           </p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-stone-900">
-            اضغط دور عشان تدخل فورًا
-          </p>
+          <p className="text-sm font-medium text-stone-900">اختار دورك</p>
           <div className="grid gap-2">
             {ACCOUNTS.map(([label, mail, hint]) => (
               <button
                 key={mail}
                 type="button"
-                className="min-h-14 w-full rounded-xl border-2 border-emerald-900 bg-emerald-50 px-4 py-3 text-right"
+                className="min-h-14 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-right hover:border-stone-500"
                 onClick={() => enterAs(mail)}
               >
-                <span className="block text-base font-semibold text-emerald-950">
+                <span className="block text-base font-semibold text-stone-900">
                   {label}
                 </span>
                 <span className="mt-0.5 block text-sm text-stone-600">

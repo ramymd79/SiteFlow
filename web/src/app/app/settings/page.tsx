@@ -46,7 +46,7 @@ export default function SettingsPage() {
         ))}
       </Card>
       <Button variant="ghost" onClick={resetDemo}>
-        إعادة بيانات التجربة
+        ابدأ من الصفر
       </Button>
     </div>
   );

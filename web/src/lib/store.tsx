@@ -19,7 +19,7 @@ import type {
   User,
 } from "./types";
 
-const KEY = "siteflow-demo-v3";
+const KEY = "siteflow-demo-v4";
 
 function loadState(): AppState {
   if (typeof window === "undefined") return seedState();

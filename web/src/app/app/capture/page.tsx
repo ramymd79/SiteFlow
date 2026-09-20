@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { DEMO_EXAMPLE, DemoPathCard } from "@/components/demo-path";
 import { Button, Card, Field, PageTitle, StatusPill, inputClass } from "@/components/ui";
 import { parseEgp } from "@/lib/money";
 import { useStore } from "@/lib/store";
@@ -39,27 +38,14 @@ export default function CapturePage() {
     setFileData("");
   }
 
-  function fillDemoExample() {
-    setText(DEMO_EXAMPLE.text);
-    setAmount(DEMO_EXAMPLE.amount);
-    setVendor(DEMO_EXAMPLE.vendor);
-    if (projects[0]) setProjectId(projects[0].id);
-    setDone("اتملأ المثال. راجعه واضغط «احفظ كمسودة».");
-  }
-
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <DemoPathCard />
-
       <PageTitle
         title="سجّل مصروف من الموقع"
-        hint="هنا المهندس بيكتب. لو مش عايز تكتب بإيدك، اضغط «املأ مثال التجربة»."
+        hint="اكتب اللي حصل والمبلغ والمورد، احفظ، وبعدين ابعتها للمشرف."
       />
 
       <Card>
-        <Button type="button" variant="ghost" className="mb-4 w-full" onClick={fillDemoExample}>
-          املأ مثال التجربة
-        </Button>
         <form
           className="space-y-5"
           onSubmit={(e) => {
@@ -185,6 +171,11 @@ export default function CapturePage() {
           ) : null}
         </div>
         <ul className="space-y-3">
+          {mine.length === 0 ? (
+            <li className="text-sm text-stone-500">
+              لسه مفيش حركات. اكتب أول مصروف فوق.
+            </li>
+          ) : null}
           {mine.map((c) => (
             <li
               key={c.id}
