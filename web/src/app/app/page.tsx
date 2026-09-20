@@ -8,7 +8,7 @@ import { useStore } from "@/lib/store";
 import type { Role } from "@/lib/types";
 
 type NextAction = {
-  href: string;
+  href?: string;
   title: string;
   why: string;
   count?: number;
@@ -98,9 +98,8 @@ function actionsForRole(
   }
   if (list.length === 0) {
     list.push({
-      href: "/app/capture",
-      title: "سجّل مصروف جديد",
-      why: "مفيش حاجة معلّقة. ابدأ حركة من الموقع.",
+      title: "مفيش حاجة معلّقة دلوقتي",
+      why: "شوف تحت: المتبقي في العهد، وإيه اللي اتخصم بعد الاعتماد.",
     });
   }
   return list;
@@ -144,13 +143,13 @@ export default function HomePage() {
           hint="فلوس العهد: راحت فين؟ ومين مسؤول عن الخطوة الجاية؟"
         />
         <div className="space-y-3">
-          {next.map((item) => (
-            <Link
-              key={item.href + item.title}
-              href={item.href}
-              className="block"
-            >
-              <Card className="transition hover:border-emerald-800">
+          {next.map((item) => {
+            const card = (
+              <Card
+                className={
+                  item.href ? "transition hover:border-emerald-800" : undefined
+                }
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-medium text-stone-900">{item.title}</p>
@@ -163,8 +162,16 @@ export default function HomePage() {
                   ) : null}
                 </div>
               </Card>
-            </Link>
-          ))}
+            );
+            if (!item.href) {
+              return <div key={item.title}>{card}</div>;
+            }
+            return (
+              <Link key={item.href + item.title} href={item.href} className="block">
+                {card}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
