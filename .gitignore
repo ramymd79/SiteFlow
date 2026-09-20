@@ -5,6 +5,8 @@
 *.key
 credentials.json
 node_modules/
+web/.next/
+web/out/
 .DS_Store
 Thumbs.db
 .vscode/
