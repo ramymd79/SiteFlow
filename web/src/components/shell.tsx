@@ -114,10 +114,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
       ) : null}
       <button
         type="button"
-        className="w-full rounded-lg bg-stone-100 px-3 py-3 text-sm"
+        className="w-full rounded-lg bg-stone-900 px-3 py-3 text-sm font-medium text-white"
         onClick={goOut}
       >
-        خروج
+        خروج — غيّر الدور من هنا
       </button>
     </div>
   );
