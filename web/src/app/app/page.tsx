@@ -109,9 +109,11 @@ export default function HomePage() {
   const { state, currentUser } = useStore();
   if (!currentUser || currentUser.role === "client") return null;
 
-  const people = state.users.filter((u) =>
-    state.advances.some((a) => a.personUserId === u.id),
-  );
+  const people = state.users.filter((u) => {
+    if (!state.advances.some((a) => a.personUserId === u.id)) return false;
+    if (currentUser.role === "engineer") return u.id === currentUser.id;
+    return true;
+  });
 
   const drafts = state.captures.filter(
     (c) =>
@@ -134,6 +136,9 @@ export default function HomePage() {
     supervisor,
     finance,
   });
+
+  const showCompanyMoney = currentUser.role !== "engineer";
+  const showCompanyGaps = currentUser.role !== "engineer";
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -177,8 +182,12 @@ export default function HomePage() {
 
       <div>
         <PageTitle
-          title="الفلوس راحت فين"
-          hint="عهد الموقع منفصلة عن فلوس العقد. المتبقي = اللي لسه مع الشخص."
+          title={showCompanyMoney ? "الفلوس راحت فين" : "عهدي"}
+          hint={
+            showCompanyMoney
+              ? "عهد الموقع منفصلة عن فلوس العقد. المتبقي = اللي لسه مع الشخص."
+              : "تشوف عهدك أنت بس. أرصدة الباقي للمالك والحسابات."
+          }
         />
         <div className="grid gap-4 md:grid-cols-2">
           {people.map((person) => {
@@ -215,36 +224,26 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div>
-        <h2 className="mb-3 font-medium">إيه الناقص قبل الإقفال</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {(
-            [
-              ["عند المشرف", supervisor],
-              ["عند الحسابات", finance],
-            ] as const
-          ).map(([label, n]) => {
-            const card = (
-              <Card className="h-full transition hover:border-emerald-800">
-                <p className="text-sm text-stone-500">{label}</p>
-                <p className="text-2xl">{n}</p>
-              </Card>
-            );
-            if (
-              currentUser.role === "owner" ||
-              currentUser.role === "supervisor" ||
-              currentUser.role === "finance"
-            ) {
-              return (
-                <Link key={label} href="/app/review">
-                  {card}
-                </Link>
-              );
-            }
-            return <div key={label}>{card}</div>;
-          })}
+      {showCompanyGaps ? (
+        <div>
+          <h2 className="mb-3 font-medium">إيه الناقص قبل الإقفال</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {(
+              [
+                ["عند المشرف", supervisor],
+                ["عند الحسابات", finance],
+              ] as const
+            ).map(([label, n]) => (
+              <Link key={label} href="/app/review">
+                <Card className="h-full transition hover:border-emerald-800">
+                  <p className="text-sm text-stone-500">{label}</p>
+                  <p className="text-2xl">{n}</p>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

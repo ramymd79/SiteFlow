@@ -6,20 +6,32 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { newId, nowIso } from "./ids";
 import { draftClientIpc, remainingOnAdvance } from "./logic";
 import { seedState } from "./seed";
+import {
+  connectRoom,
+  createRoom,
+  disconnectRoom,
+  getStoredRoomId,
+  joinRoomWait,
+  mergeRemote,
+  pushRoomState,
+  setStoredRoomId,
+} from "./sync";
 import type {
   AppState,
   Capture,
   MovementType,
+  Project,
   Role,
   User,
 } from "./types";
 
-const KEY = "siteflow-demo-v4";
+const KEY = "siteflow-demo-v5";
 
 function loadState(): AppState {
   if (typeof window === "undefined") return seedState();
@@ -31,7 +43,10 @@ function loadState(): AppState {
     return {
       ...seed,
       ...parsed,
-      users: seed.users,
+      users: seed.users.map((u) => {
+        const saved = parsed.users?.find((x) => x.id === u.id);
+        return saved ? { ...u, projectIds: saved.projectIds } : u;
+      }),
       currentUserId: parsed.currentUserId ?? null,
     };
   } catch {
@@ -43,9 +58,20 @@ type Store = {
   state: AppState;
   currentUser: User | null;
   ready: boolean;
+  syncRoomId: string | null;
+  syncMessage: string;
   login: (email: string, password: string) => string | null;
   logout: () => void;
   resetDemo: () => void;
+  enableSync: () => Promise<string | null>;
+  joinSync: (roomId: string) => Promise<string | null>;
+  leaveSync: () => void;
+  addProject: (input: {
+    name: string;
+    location: string;
+    clientName: string;
+  }) => void;
+  assignUserProjects: (userId: string, projectIds: string[]) => void;
   addCapture: (input: {
     projectId: string;
     originalText: string;
@@ -93,16 +119,68 @@ const Ctx = createContext<Store | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(seedState);
   const [ready, setReady] = useState(false);
+  const [syncRoomId, setSyncRoomId] = useState<string | null>(null);
+  const [syncMessage, setSyncMessage] = useState("");
+  const skipPushRef = useRef(false);
+  const lastRemoteAtRef = useRef("");
 
   useEffect(() => {
-    setState(loadState());
+    const local = loadState();
+    const room = getStoredRoomId();
+    setSyncRoomId(room);
+    setState(local);
     setReady(true);
+    if (!room) return;
+
+    const onRemote = (remote: AppState, updatedAt: string) => {
+      if (updatedAt && updatedAt === lastRemoteAtRef.current) return;
+      lastRemoteAtRef.current = updatedAt;
+      skipPushRef.current = true;
+      setState((prev) => mergeRemote(prev, remote, prev.currentUserId));
+      setSyncMessage("اتزامنت البيانات من جهاز تاني.");
+    };
+
+    void joinRoomWait(room, onRemote).then((env) => {
+      if (env?.state) {
+        lastRemoteAtRef.current = env.updatedAt;
+        skipPushRef.current = true;
+        setState((prev) => mergeRemote(prev, env.state, prev.currentUserId));
+        setSyncMessage("اتصلت بغرفة المزامنة.");
+      } else {
+        connectRoom(room, onRemote);
+        setSyncMessage("الغرفة فاضية — هنبعت البيانات الحالية.");
+        skipPushRef.current = false;
+        try {
+          lastRemoteAtRef.current = pushRoomState(local);
+        } catch {
+          setSyncMessage("المزامنة مش متاحة دلوقتي. الشغل محفوظ على الجهاز.");
+        }
+      }
+    });
+
+    return () => disconnectRoom();
   }, []);
 
   useEffect(() => {
     if (!ready) return;
     window.localStorage.setItem(KEY, JSON.stringify(state));
   }, [state, ready]);
+
+  useEffect(() => {
+    if (!ready || !syncRoomId) return;
+    if (skipPushRef.current) {
+      skipPushRef.current = false;
+      return;
+    }
+    const t = window.setTimeout(() => {
+      try {
+        lastRemoteAtRef.current = pushRoomState(state);
+      } catch {
+        setSyncMessage("فشل حفظ المزامنة. هنعيد المحاولة.");
+      }
+    }, 500);
+    return () => window.clearTimeout(t);
+  }, [state, ready, syncRoomId]);
 
   const addAuditTo = useCallback(
     (
@@ -164,6 +242,98 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       window.localStorage.setItem(KEY, JSON.stringify(next));
       return next;
     });
+  }, []);
+
+  const enableSync = useCallback(async () => {
+    try {
+      const id = await createRoom(state);
+      setStoredRoomId(id);
+      setSyncRoomId(id);
+      connectRoom(id, (remote, updatedAt) => {
+        if (updatedAt && updatedAt === lastRemoteAtRef.current) return;
+        lastRemoteAtRef.current = updatedAt;
+        skipPushRef.current = true;
+        setState((prev) => mergeRemote(prev, remote, prev.currentUserId));
+      });
+      lastRemoteAtRef.current = pushRoomState(state);
+      setSyncMessage("اتعملت غرفة مزامنة. انسخ الرقم وادخله على الموبايل.");
+      return id;
+    } catch {
+      setSyncMessage("تعذر إنشاء المزامنة. تأكد من الإنترنت.");
+      return null;
+    }
+  }, [state]);
+
+  const joinSync = useCallback(async (roomId: string) => {
+    const id = roomId.trim();
+    if (!id) return "اكتب رقم الغرفة";
+    try {
+      setStoredRoomId(id);
+      setSyncRoomId(id);
+      const env = await joinRoomWait(id, (remote, updatedAt) => {
+        if (updatedAt && updatedAt === lastRemoteAtRef.current) return;
+        lastRemoteAtRef.current = updatedAt;
+        skipPushRef.current = true;
+        setState((prev) => mergeRemote(prev, remote, prev.currentUserId));
+      });
+      if (env?.state) {
+        lastRemoteAtRef.current = env.updatedAt;
+        skipPushRef.current = true;
+        setState((prev) => mergeRemote(prev, env.state, prev.currentUserId));
+        setSyncMessage("اتصلت بنفس بيانات الغرفة.");
+        return null;
+      }
+      lastRemoteAtRef.current = pushRoomState(state);
+      setSyncMessage("الغرفة كانت فاضية — اتربطت وبعتنا البيانات.");
+      return null;
+    } catch {
+      return "تعذر الاتصال بالغرفة";
+    }
+  }, [state]);
+
+  const leaveSync = useCallback(() => {
+    disconnectRoom();
+    setStoredRoomId(null);
+    setSyncRoomId(null);
+    lastRemoteAtRef.current = "";
+    setSyncMessage("المزامنة اتوقفت. البيانات لسه على الجهاز.");
+  }, []);
+
+  const addProject = useCallback(
+    (input: { name: string; location: string; clientName: string }) => {
+      setState((prev) => {
+        const project: Project = {
+          id: newId("p"),
+          name: input.name.trim(),
+          location: input.location.trim(),
+          clientName: input.clientName.trim(),
+        };
+        const users = prev.users.map((u) =>
+          u.role === "owner" || u.role === "finance"
+            ? { ...u, projectIds: [...u.projectIds, project.id] }
+            : u,
+        );
+        return addAuditTo(
+          { ...prev, projects: [...prev.projects, project], users },
+          "إضافة مشروع",
+          "project",
+          project.id,
+          "",
+          project.name,
+          "owner",
+        );
+      });
+    },
+    [addAuditTo],
+  );
+
+  const assignUserProjects = useCallback((userId: string, projectIds: string[]) => {
+    setState((prev) => ({
+      ...prev,
+      users: prev.users.map((u) =>
+        u.id === userId ? { ...u, projectIds } : u,
+      ),
+    }));
   }, []);
 
   const addCapture: Store["addCapture"] = useCallback((input) => {
@@ -682,9 +852,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     state,
     currentUser,
     ready,
+    syncRoomId,
+    syncMessage,
     login,
     logout,
     resetDemo,
+    enableSync,
+    joinSync,
+    leaveSync,
+    addProject,
+    assignUserProjects,
     addCapture,
     updateCapture,
     sendToSupervisor,

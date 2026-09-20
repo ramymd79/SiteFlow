@@ -23,15 +23,44 @@ const LINKS: { href: string; label: string; roles: Role[] }[] = [
     label: "المراجعة",
     roles: ["owner", "finance", "supervisor"],
   },
+  {
+    href: "/app/advances",
+    label: "العهد",
+    roles: ["owner", "finance", "supervisor"],
+  },
+  {
+    href: "/app/close",
+    label: "النواقص",
+    roles: ["owner", "finance", "supervisor"],
+  },
+  {
+    href: "/app/export",
+    label: "تصدير",
+    roles: ["owner", "finance"],
+  },
+  {
+    href: "/app/audit",
+    label: "التدقيق",
+    roles: ["owner", "finance"],
+  },
+  {
+    href: "/app/projects",
+    label: "المشاريع",
+    roles: ["owner"],
+  },
+  {
+    href: "/app/settings",
+    label: "إعدادات",
+    roles: ["owner"],
+  },
+  {
+    href: "/app/check",
+    label: "فحص",
+    roles: ["owner", "finance"],
+  },
 ];
 
-const ALLOWED = new Set([
-  "/app",
-  "/app/capture",
-  "/app/review",
-  "/app/supervisor",
-  "/app/finance",
-]);
+const ALLOWED = new Set(LINKS.map((l) => l.href).concat(["/app/supervisor", "/app/finance"]));
 
 function normalizePath(path: string): string {
   let value = path;
@@ -56,7 +85,7 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const { currentUser, logout, resetDemo, ready } = useStore();
+  const { currentUser, logout, resetDemo, ready, syncRoomId } = useStore();
   const rawPath = usePathname();
   const pathname = normalizePath(rawPath);
   const router = useRouter();
@@ -72,6 +101,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
       return;
     }
     if (!ALLOWED.has(pathname)) {
+      router.replace("/app");
+      return;
+    }
+    const link = LINKS.find((l) => l.href === pathname);
+    if (link && !can(currentUser.role, link.roles)) {
       router.replace("/app");
       return;
     }
@@ -103,6 +137,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const accountButtons = (
     <div className="space-y-2 border-t border-stone-200 p-3">
+      {syncRoomId ? (
+        <p className="px-1 text-xs text-stone-500">
+          مزامنة: {syncRoomId.slice(0, 8)}…
+        </p>
+      ) : null}
       {currentUser.role === "owner" ? (
         <button
           type="button"
@@ -120,6 +159,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
         خروج
       </button>
     </div>
+  );
+
+  const primaryLinks = links.filter((l) =>
+    ["/app", "/app/capture", "/app/review"].includes(l.href),
+  );
+  const moreLinks = links.filter(
+    (l) => !["/app", "/app/capture", "/app/review"].includes(l.href),
   );
 
   return (
@@ -188,10 +234,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <nav
         className={`fixed inset-x-0 bottom-0 z-30 grid border-t border-stone-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden ${
-          links.length === 2 ? "grid-cols-2" : "grid-cols-3"
+          primaryLinks.length + (moreLinks.length > 0 ? 1 : 0) === 2
+            ? "grid-cols-2"
+            : primaryLinks.length + (moreLinks.length > 0 ? 1 : 0) >= 4
+              ? "grid-cols-4"
+              : "grid-cols-3"
         }`}
       >
-        {links.map((l) => (
+        {primaryLinks.map((l) => (
           <Link
             key={l.href}
             href={l.href}
@@ -204,6 +254,34 @@ export function Shell({ children }: { children: React.ReactNode }) {
             {l.label}
           </Link>
         ))}
+        {moreLinks.length > 0 ? (
+          <details className="relative min-h-14">
+            <summary
+              className={`flex h-full cursor-pointer list-none items-center justify-center px-1 py-2 text-center text-xs leading-tight text-stone-600 [&::-webkit-details-marker]:hidden ${
+                moreLinks.some((l) => isActive(pathname, l.href))
+                  ? "font-semibold text-emerald-900"
+                  : ""
+              }`}
+            >
+              المزيد
+            </summary>
+            <div className="absolute bottom-full left-0 right-0 mb-1 rounded-t-xl border border-stone-200 bg-white p-2 shadow-lg">
+              {moreLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`block rounded-lg px-3 py-3 text-sm ${
+                    isActive(pathname, l.href)
+                      ? "bg-emerald-50 font-medium text-emerald-950"
+                      : "text-stone-700"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+        ) : null}
       </nav>
     </div>
   );

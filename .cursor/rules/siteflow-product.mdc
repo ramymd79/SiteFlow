@@ -9,7 +9,7 @@ Write the product name as `SiteFlow` in English. Never transliterate it.
 
 SiteFlow is not an ERP. Do not add accounting, HR, payroll, inventory, native apps, BOQ, IPC, or a client portal unless a completed stage and a decision gate have proven they are needed.
 
-Follow BUILD → TEST → REVIEW → DECIDE → NEXT STEP. Current approved work is field validation only. Do not start application code until that stage passes.
+Follow BUILD → TEST → REVIEW → DECIDE → NEXT STEP. Current approved product slice is the full site-advance cycle (capture → supervisor → finance → balances → deficits → export → audit → shared sync). Do not add WhatsApp automation, BOQ, IPC, or a client portal until a decision gate after that slice is tried.
 
 WhatsApp is an optional capture layer, not the product. Keep original evidence. AI proposes; a human approves money movements. Multiple open advances for the same person are allowed.
 
