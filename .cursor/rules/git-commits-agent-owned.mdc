@@ -1,0 +1,28 @@
+---
+description: Agent owns Git commits at the right time; user does not decide each commit
+alwaysApply: true
+---
+
+# Git commits — agent-owned
+
+The user does not want to decide when to commit. The agent must handle commits.
+
+## Do commit without asking when
+- A meaningful slice of work is done and working (feature, fix, UX trim, publishable milestone)
+- About to start a risky or large next change
+- The session would otherwise leave important uncommitted work behind
+
+## Do not commit
+- Broken mid-change states
+- Secrets (`.env`, credentials, keys)
+- Empty or noise-only diffs
+- While still actively iterating on the same unfinished slice in the same turn
+
+## How
+- Follow the repo Git Safety Protocol (no force push, no config changes, no amend unless allowed)
+- Short commit message focused on why
+- Prefer one commit per completed slice, not per tiny edit
+
+## Push
+- Do **not** push unless the user asked, or the task itself is publishing/sharing (for example updating the public demo link)
+- After a local commit, a brief note is enough; do not ask the user to click Commit in the UI
