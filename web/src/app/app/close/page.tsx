@@ -61,6 +61,16 @@ export default function ClosePage() {
       n: state.advances.filter((a) => a.status !== "settled").length,
       href: "/app/advances",
     },
+    {
+      label: "تقدم غير معتمد",
+      n: state.progress.filter((p) => p.status === "draft").length,
+      href: "/app/progress",
+    },
+    {
+      label: "تغييرات معلّقة",
+      n: state.variations.filter((v) => v.status === "pending").length,
+      href: "/app/variations",
+    },
   ] as const;
 
   const blockers = rows.reduce((s, r) => s + r.n, 0);

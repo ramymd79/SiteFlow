@@ -7,9 +7,11 @@ alwaysApply: true
 
 Write the product name as `SiteFlow` in English. Never transliterate it.
 
-SiteFlow is not an ERP. Do not add accounting, HR, payroll, inventory, native apps, BOQ, IPC, or a client portal unless a completed stage and a decision gate have proven they are needed.
+SiteFlow is not an ERP. Do not add accounting, HR, payroll, inventory, or native apps unless a completed stage and a decision gate have proven they are needed.
 
-Follow BUILD → TEST → REVIEW → DECIDE → NEXT STEP. Current approved product slice is the full site-advance cycle (capture → supervisor → finance → balances → deficits → export → audit → shared sync). Do not add WhatsApp automation, BOQ, IPC, or a client portal until a decision gate after that slice is tried.
+Follow BUILD → TEST → REVIEW → DECIDE → NEXT STEP. Current approved product slice is the full site-advance cycle (capture → supervisor → finance → balances → deficits → export → audit → shared sync). Keep advances as the product center in messaging and primary navigation.
+
+A labeled **founder tour** of existing BOQ / progress / variations / IPC / portal / WhatsApp-sim screens is allowed under a clear “باقي الصورة الكبيرة — للتجربة” group. That tour does not change the product identity and does not authorize Meta WhatsApp automation or competing as a full construction ERP.
 
 WhatsApp is an optional capture layer, not the product. Keep original evidence. AI proposes; a human approves money movements. Multiple open advances for the same person are allowed.
 

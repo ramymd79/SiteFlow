@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Card, PageTitle } from "@/components/ui";
+import { TourPathsCard } from "@/components/tour-paths";
 import { remainingOnAdvance, underReviewOnAdvance } from "@/lib/logic";
 import { formatMoney } from "@/lib/money";
 import { useStore } from "@/lib/store";
@@ -179,6 +180,8 @@ export default function HomePage() {
           })}
         </div>
       </div>
+
+      <TourPathsCard />
 
       <div>
         <PageTitle

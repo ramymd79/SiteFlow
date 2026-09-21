@@ -31,7 +31,7 @@ import type {
   User,
 } from "./types";
 
-const KEY = "siteflow-demo-v5";
+const KEY = "siteflow-demo-v6";
 
 function loadState(): AppState {
   if (typeof window === "undefined") return seedState();

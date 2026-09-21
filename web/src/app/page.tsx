@@ -7,14 +7,15 @@ import { DEMO_PASSWORD } from "@/lib/seed";
 import { useStore } from "@/lib/store";
 
 const ACCOUNTS = [
-  ["مهندس", "engineer@demo.siteflow", "يسجّل مصروف من الموقع"],
+  ["مهندس", "engineer@demo.siteflow", "يسجّل مصروف من الموقع — مسار العهد"],
   ["مشرف", "supervisor@demo.siteflow", "يراجع ويبعت للحسابات"],
-  ["حسابات", "finance@demo.siteflow", "يعتمد أو يرجع المصروف"],
-  ["مالك", "owner@demo.siteflow", "يشوف الفلوس والناقص"],
+  ["حسابات", "finance@demo.siteflow", "يعتمد المصروف، ويشوف المستخلص في الجولة"],
+  ["مالك", "owner@demo.siteflow", "يشوف الفلوس والنواقص والصورة الكبيرة"],
+  ["عميل", "client@demo.siteflow", "بوابة العميل فقط — مسار الصورة الكبيرة"],
 ] as const;
 
 export default function LoginPage() {
-  const { login, logout, currentUser, ready } = useStore();
+  const { login, currentUser, ready } = useStore();
   const router = useRouter();
   const [email, setEmail] = useState("engineer@demo.siteflow");
   const [password, setPassword] = useState(DEMO_PASSWORD);
@@ -24,11 +25,11 @@ export default function LoginPage() {
     if (!ready) return;
     if (!currentUser) return;
     if (currentUser.role === "client") {
-      logout();
+      router.replace("/app/portal");
       return;
     }
     router.replace("/app");
-  }, [ready, currentUser, router, logout]);
+  }, [ready, currentUser, router]);
 
   function enterAs(mail: string) {
     setEmail(mail);
@@ -39,8 +40,7 @@ export default function LoginPage() {
       return;
     }
     if (mail === "client@demo.siteflow") {
-      setError("التجربة دي لفريق الشركة، مش لبوابة العميل.");
-      logout();
+      router.replace("/app/portal");
       return;
     }
     router.replace("/app");
@@ -60,11 +60,11 @@ export default function LoginPage() {
         <div>
           <h1 className="text-2xl font-semibold">SiteFlow</h1>
           <p className="mt-2 text-sm text-stone-700">
-            فلوس العهد: راحت فين؟ ومين مسؤول عن الخطوة الجاية قبل الإقفال؟
+            لب المنتج: فلوس العهد راحت فين؟ ومين مسؤول؟
           </p>
           <p className="mt-2 text-sm text-stone-600">
-            البرنامج فاضي من المصروفات. ادخل كمهندس وسجّل أول مصروف بنفسك.
-            كلمة السر لو دخلت يدوي: {DEMO_PASSWORD}
+            مسار العهد فاضي من المصروفات — ادخل كمهندس وسجّل أول حركة. بنود
+            المستخلص جاهزة في جولة الصورة الكبيرة. كلمة السر: {DEMO_PASSWORD}
           </p>
         </div>
 
