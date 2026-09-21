@@ -21,6 +21,7 @@ function SupervisorReview() {
   );
   const [active, setActive] = useState(queue[0]?.id ?? "");
   const [err, setErr] = useState("");
+  const [supervisorNote, setSupervisorNote] = useState("");
   const capture = queue.find((c) => c.id === active) ?? queue[0];
 
   useEffect(() => {
@@ -28,6 +29,10 @@ function SupervisorReview() {
       setActive(queue[0]?.id ?? "");
     }
   }, [queue, active]);
+
+  useEffect(() => {
+    setSupervisorNote(capture?.supervisorNote ?? "");
+  }, [capture?.id, capture?.supervisorNote]);
 
   return (
     <div className="space-y-4">
@@ -56,11 +61,16 @@ function SupervisorReview() {
                     <span>{c.description}</span>
                     <StatusPill status={c.status} />
                   </div>
+                  <span className="mt-1 block text-stone-600">
+                    {formatMoney(c.amountPiasters)}
+                  </span>
                 </button>
               </li>
             ))}
             {queue.length === 0 ? (
-              <p className="text-sm text-stone-500">مفيش حاجة مستنية مراجعة.</p>
+              <p className="text-sm text-stone-500">
+                مفيش حاجة مستنية مراجعة. ادخل كمهندس وسجّل مصروف وابعته.
+              </p>
             ) : null}
           </ul>
         </Card>
@@ -69,6 +79,11 @@ function SupervisorReview() {
             <p className="text-sm text-stone-500">
               الأصل: {capture.originalText}
             </p>
+            {capture.returnReason ? (
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                سبب إرجاع الحسابات: {capture.returnReason}
+              </p>
+            ) : null}
             {capture.originalFileDataUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -159,10 +174,36 @@ function SupervisorReview() {
                   ))}
               </select>
             </Field>
+            <Field label="ملاحظة للحسابات (اختياري)">
+              <textarea
+                className={inputClass}
+                rows={2}
+                value={supervisorNote}
+                onChange={(e) => setSupervisorNote(e.target.value)}
+                onBlur={() => {
+                  if (supervisorNote !== (capture.supervisorNote ?? "")) {
+                    updateCapture(
+                      capture.id,
+                      { supervisorNote },
+                      "ملاحظة مشرف",
+                    );
+                  }
+                }}
+              />
+            </Field>
             {err ? <p className="text-sm text-red-800">{err}</p> : null}
             <Button
               className="w-full"
-              onClick={() => setErr(sendToFinance(capture.id) ?? "")}
+              onClick={() => {
+                if (supervisorNote !== (capture.supervisorNote ?? "")) {
+                  updateCapture(
+                    capture.id,
+                    { supervisorNote },
+                    "ملاحظة مشرف",
+                  );
+                }
+                setErr(sendToFinance(capture.id) ?? "");
+              }}
             >
               ابعتها للحسابات
             </Button>
@@ -233,7 +274,10 @@ function FinanceReview() {
             </button>
           ))}
           {queue.length === 0 ? (
-            <p className="text-sm text-stone-500">مفيش حركات مستنية اعتماد.</p>
+            <p className="text-sm text-stone-500">
+              مفيش حركات مستنية اعتماد. ادخل كمشرف وابعث حركة للحسابات، أو كمّل
+              من مسار العهد على الرئيسية.
+            </p>
           ) : null}
         </Card>
         {capture ? (

@@ -31,7 +31,7 @@ import type {
   User,
 } from "./types";
 
-const KEY = "siteflow-demo-v6";
+const KEY = "siteflow-demo-v7";
 
 function loadState(): AppState {
   if (typeof window === "undefined") return seedState();
@@ -94,6 +94,7 @@ type Store = {
     note: string,
     advanceId?: string,
   ) => string | null;
+  reopenCaptureDraft: (id: string) => void;
   createAdvance: (input: {
     personUserId: string;
     projectId: string;
@@ -532,7 +533,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 ...c,
                 status: decision,
                 financeNote: note,
-                returnReason: decision === "returned" ? note : c.returnReason,
+                returnReason: note,
               }
             : c,
         );
@@ -547,6 +548,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         );
       });
       return error;
+    },
+    [addAuditTo],
+  );
+
+  const reopenCaptureDraft: Store["reopenCaptureDraft"] = useCallback(
+    (id) => {
+      setState((prev) => {
+        const current = prev.captures.find((c) => c.id === id);
+        if (!current || current.status !== "rejected") return prev;
+        const next = prev.captures.map((c) =>
+          c.id === id ? { ...c, status: "draft" as const } : c,
+        );
+        return addAuditTo(
+          { ...prev, captures: next },
+          "إعادة فتح كمرفوض إلى مسودة",
+          "capture",
+          id,
+          current.status,
+          "draft",
+          "web",
+        );
+      });
     },
     [addAuditTo],
   );
@@ -867,6 +890,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     sendToSupervisor,
     sendToFinance,
     financeDecide,
+    reopenCaptureDraft,
     createAdvance,
     settleAdvance,
     suggestAi,

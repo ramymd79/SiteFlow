@@ -13,6 +13,11 @@ export default function AuditPage() {
       />
       <Card>
         <ul className="space-y-2 text-sm">
+          {state.audit.length === 0 ? (
+            <li className="text-stone-500">
+              لسه مفيش أحداث. أول ما تتسجل حركة وتتراجع، هتظهر هنا.
+            </li>
+          ) : null}
           {state.audit.map((a) => {
             const actor = state.users.find((u) => u.id === a.actorId)?.name ?? a.actorId;
             return (

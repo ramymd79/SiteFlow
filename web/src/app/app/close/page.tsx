@@ -16,7 +16,7 @@ export default function ClosePage() {
     );
   }
 
-  const rows = [
+  const advanceRows = [
     {
       label: "مستني مشرف",
       n: state.captures.filter((c) => c.status === "with_supervisor").length,
@@ -35,7 +35,7 @@ export default function ClosePage() {
     {
       label: "مرتجع",
       n: state.captures.filter((c) => c.status === "returned").length,
-      href: "/app/review",
+      href: "/app/capture",
     },
     {
       label: "بلا فاتورة مفتوحة",
@@ -56,11 +56,9 @@ export default function ClosePage() {
       ).length,
       href: "/app/review",
     },
-    {
-      label: "عهد مفتوحة",
-      n: state.advances.filter((a) => a.status !== "settled").length,
-      href: "/app/advances",
-    },
+  ] as const;
+
+  const tourRows = [
     {
       label: "تقدم غير معتمد",
       n: state.progress.filter((p) => p.status === "draft").length,
@@ -73,33 +71,63 @@ export default function ClosePage() {
     },
   ] as const;
 
-  const blockers = rows.reduce((s, r) => s + r.n, 0);
-  const score = Math.max(0, 100 - blockers * 8);
+  const openAdvances = state.advances.filter((a) => a.status !== "settled")
+    .length;
+  const advanceBlockers = advanceRows.reduce((s, r) => s + r.n, 0);
+  const score = Math.max(0, 100 - advanceBlockers * 12);
 
   return (
-    <div>
-      <PageTitle
-        title="النواقص قبل الإقفال"
-        hint="كل عدّاد لازم يبقى صفر قبل ما تقول الأسبوع اتقفل نظيف."
-      />
-      <Card className="mb-4">
-        <p className="text-sm text-stone-500">درجة الجاهزية</p>
-        <p className="text-3xl">{score}٪</p>
-        <p className="mt-1 text-sm text-stone-600">
-          {blockers === 0
-            ? "مفيش نواقص معلّقة على دورة العهد."
-            : `${blockers} بند لسه مفتوح.`}
+    <div className="space-y-8">
+      <div>
+        <PageTitle
+          title="النواقص قبل الإقفال"
+          hint="درجة الجاهزية على دورة العهد بس. العهد المفتوحة طبيعية ومش بتخصم من الدرجة."
+        />
+        <Card className="mb-4">
+          <p className="text-sm text-stone-500">درجة جاهزية العهد</p>
+          <p className="text-3xl">{score}٪</p>
+          <p className="mt-1 text-sm text-stone-600">
+            {advanceBlockers === 0
+              ? "مفيش نواقص معلّقة على دورة العهد."
+              : `${advanceBlockers} بند لسه مفتوح في العهد.`}
+          </p>
+          <p className="mt-2 text-xs text-stone-500">
+            عهد مفتوحة حاليًا: {openAdvances} —{" "}
+            <Link href="/app/advances" className="underline">
+              شوف العهد
+            </Link>
+          </p>
+        </Card>
+        <h2 className="mb-3 font-medium">نواقص العهد</h2>
+        <div className="grid gap-3 md:grid-cols-3">
+          {advanceRows.map((row) => (
+            <Link key={row.label} href={row.href}>
+              <Card className="h-full transition hover:border-emerald-800">
+                <p className="text-sm text-stone-500">{row.label}</p>
+                <p className="text-2xl">{row.n}</p>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-1 font-medium text-amber-900">
+          نواقص جولة الصورة الكبيرة
+        </h2>
+        <p className="mb-3 text-sm text-stone-600">
+          دي مش جزء من درجة إقفال العهد. للمتابعة في البنود والمستخلص.
         </p>
-      </Card>
-      <div className="grid gap-3 md:grid-cols-4">
-        {rows.map((row) => (
-          <Link key={row.label} href={row.href}>
-            <Card className="h-full transition hover:border-emerald-800">
-              <p className="text-sm text-stone-500">{row.label}</p>
-              <p className="text-2xl">{row.n}</p>
-            </Card>
-          </Link>
-        ))}
+        <div className="grid gap-3 md:grid-cols-3">
+          {tourRows.map((row) => (
+            <Link key={row.label} href={row.href}>
+              <Card className="h-full transition hover:border-amber-700">
+                <p className="text-sm text-stone-500">{row.label}</p>
+                <p className="text-2xl">{row.n}</p>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

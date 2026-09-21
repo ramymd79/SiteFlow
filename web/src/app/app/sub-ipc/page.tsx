@@ -39,6 +39,11 @@ export default function SubIpcPage() {
       </Card>
       <Card>
         <ul className="space-y-2 text-sm">
+          {state.subIpcs.length === 0 ? (
+            <li className="text-stone-500">
+              لسه مفيش مستخلص باطن. اختار العقد واكتب عمل الفترة واصدر.
+            </li>
+          ) : null}
           {state.subIpcs.map((i) => (
             <li key={i.id}>
               رقم {i.number} — صافي {formatMoney(i.netPiasters)} — احتجاز{" "}

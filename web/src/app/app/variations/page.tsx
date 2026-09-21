@@ -70,7 +70,9 @@ export default function VariationsPage() {
       </Card>
       <Card>
         <ul className="space-y-2 text-sm">
-          {state.variations.map((v) => (
+          {state.variations
+            .filter((v) => v.projectId === projectId)
+            .map((v) => (
             <li key={v.id} className="flex items-center justify-between border-b border-stone-100 py-2">
               <span>
                 {v.name} — {v.qtyDelta} — {variationStatusLabel[v.status] ?? v.status}
@@ -80,6 +82,10 @@ export default function VariationsPage() {
               ) : null}
             </li>
           ))}
+          {state.variations.filter((v) => v.projectId === projectId).length ===
+          0 ? (
+            <li className="text-stone-500">مفيش أوامر تغيير على المشروع ده.</li>
+          ) : null}
         </ul>
       </Card>
     </div>

@@ -69,7 +69,9 @@ export default function BoqPage() {
             </tr>
           </thead>
           <tbody>
-            {state.boq.map((item) => (
+            {state.boq
+              .filter((item) => item.projectId === projectId)
+              .map((item) => (
               <tr key={item.id} className="border-t border-stone-100">
                 <td className="p-2">{item.name}</td>
                 <td className="p-2">{item.contractQty} {item.unit}</td>
@@ -79,6 +81,14 @@ export default function BoqPage() {
                 </td>
               </tr>
             ))}
+            {state.boq.filter((item) => item.projectId === projectId).length ===
+            0 ? (
+              <tr>
+                <td className="p-2 text-stone-500" colSpan={4}>
+                  مفيش بنود على المشروع ده. ضيف بند من الفورم فوق.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
         </div>

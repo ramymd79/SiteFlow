@@ -48,6 +48,12 @@ export default function ExportPage() {
         <p className="text-sm text-stone-600">
           حركات معتمدة: {approved.length} — عهد: {state.advances.length}
         </p>
+        {approved.length === 0 ? (
+          <p className="rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-600">
+            لسه مفيش حركات معتمدة. كمّل مسار العهد (تسجيل → مشرف → حسابات) وبعدين
+            صدّر.
+          </p>
+        ) : null}
         <Button
           className="w-full"
           onClick={() => {

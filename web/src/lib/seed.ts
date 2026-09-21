@@ -120,6 +120,14 @@ export const seedState = (): AppState => ({
       contractQty: 400,
       unitPricePiasters: piasters(180),
     },
+    {
+      id: "b4",
+      projectId: "p-maadi",
+      name: "تشطيب سيراميك",
+      unit: "م²",
+      contractQty: 80,
+      unitPricePiasters: piasters(350),
+    },
   ],
   progress: [
     {
@@ -157,8 +165,17 @@ export const seedState = (): AppState => ({
       boqItemId: "b3",
       name: "زيادة مساحة مباني",
       qtyDelta: 50,
-      status: "pending",
+      status: "approved",
       createdAt: "2026-09-08T09:00:00.000Z",
+    },
+    {
+      id: "v2",
+      projectId: "p-zayed",
+      boqItemId: "b1",
+      name: "تعديل سماكة أساسات",
+      qtyDelta: 10,
+      status: "pending",
+      createdAt: "2026-09-15T09:00:00.000Z",
     },
   ],
   contractAdvances: [
@@ -176,7 +193,18 @@ export const seedState = (): AppState => ({
       name: "مقاول تشطيب باطن",
     },
   ],
-  subIpcs: [],
+  subIpcs: [
+    {
+      id: "si1",
+      subcontractId: "sc1",
+      number: 1,
+      currentWorkPiasters: piasters(50000),
+      previousPiasters: 0,
+      retentionPiasters: piasters(2500),
+      netPiasters: piasters(47500),
+      createdAt: "2026-09-14T09:00:00.000Z",
+    },
+  ],
   clientPayments: [
     {
       id: "pay1",

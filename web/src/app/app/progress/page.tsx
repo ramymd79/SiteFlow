@@ -71,7 +71,9 @@ export default function ProgressPage() {
       </Card>
       <Card>
         <ul className="space-y-2 text-sm">
-          {state.progress.map((p) => {
+          {state.progress
+            .filter((p) => p.projectId === projectId)
+            .map((p) => {
             const item = state.boq.find((b) => b.id === p.boqItemId);
             return (
               <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 py-2">
@@ -85,6 +87,10 @@ export default function ProgressPage() {
               </li>
             );
           })}
+          {state.progress.filter((p) => p.projectId === projectId).length ===
+          0 ? (
+            <li className="text-stone-500">مفيش حصر على المشروع ده بعد.</li>
+          ) : null}
         </ul>
       </Card>
     </div>

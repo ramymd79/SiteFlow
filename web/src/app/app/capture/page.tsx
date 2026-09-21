@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { Button, Card, Field, PageTitle, StatusPill, inputClass } from "@/components/ui";
-import { parseEgp } from "@/lib/money";
+import { formatMoney, parseEgp } from "@/lib/money";
 import { useStore } from "@/lib/store";
 
 export default function CapturePage() {
-  const { state, currentUser, addCapture, sendToSupervisor } = useStore();
+  const {
+    state,
+    currentUser,
+    addCapture,
+    sendToSupervisor,
+    reopenCaptureDraft,
+  } = useStore();
   const projects = state.projects.filter((p) =>
     currentUser?.projectIds.includes(p.id),
   );
@@ -19,6 +25,7 @@ export default function CapturePage() {
   const [fileData, setFileData] = useState("");
   const [lastId, setLastId] = useState<string | null>(null);
   const [done, setDone] = useState("");
+  const [formErr, setFormErr] = useState("");
 
   const mine =
     currentUser?.role === "owner" || currentUser?.role === "supervisor"
@@ -50,11 +57,17 @@ export default function CapturePage() {
           className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
+            setFormErr("");
             if (!text.trim()) return;
+            const amountPiasters = parseEgp(amount);
+            if (amountPiasters <= 0) {
+              setFormErr("اكتب مبلغ أكبر من صفر.");
+              return;
+            }
             const id = addCapture({
               projectId,
               originalText: text,
-              amountPiasters: parseEgp(amount),
+              amountPiasters,
               vendorName: vendor,
               description: text,
               pettyNoReceipt: petty,
@@ -64,7 +77,9 @@ export default function CapturePage() {
             });
             resetForm();
             setLastId(id);
-            setDone("اتحفظت. انزل تحت على المسودة الجديدة واضغط «ابعتها للمشرف».");
+            setDone(
+              "اتحفظت. انزل تحت على المسودة الجديدة واضغط «ابعتها للمشرف».",
+            );
           }}
         >
           <section className="space-y-3">
@@ -114,6 +129,7 @@ export default function CapturePage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="600"
+                required
               />
             </Field>
             <Field label="المورد">
@@ -148,6 +164,9 @@ export default function CapturePage() {
             </label>
           </section>
 
+          {formErr ? (
+            <p className="text-sm text-red-800">{formErr}</p>
+          ) : null}
           <Button type="submit" className="w-full">
             احفظ كمسودة
           </Button>
@@ -185,10 +204,21 @@ export default function CapturePage() {
                 <span className="font-medium">{c.description}</span>
                 <StatusPill status={c.status} />
               </div>
+              <p className="text-sm text-stone-800">
+                {formatMoney(c.amountPiasters)}
+              </p>
               <p className="text-xs text-stone-500">
                 {c.vendorName ? `${c.vendorName} · ` : ""}
-                {projects.find((p) => p.id === c.projectId)?.name ?? ""}
+                {projects.find((p) => p.id === c.projectId)?.name ??
+                  state.projects.find((p) => p.id === c.projectId)?.name ??
+                  ""}
               </p>
+              {c.returnReason &&
+              (c.status === "returned" || c.status === "rejected") ? (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                  سبب الحسابات: {c.returnReason}
+                </p>
+              ) : null}
               {c.status === "draft" || c.status === "returned" ? (
                 <Button
                   className={`w-full ${
@@ -207,6 +237,20 @@ export default function CapturePage() {
                   {lastId === c.id
                     ? "الخطوة الجاية: ابعتها للمشرف"
                     : "ابعتها للمشرف"}
+                </Button>
+              ) : null}
+              {c.status === "rejected" ? (
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    reopenCaptureDraft(c.id);
+                    setDone(
+                      "اتفتحت تاني كمسودة. عدّل من شاشة جديدة أو ابعتها بعد التصحيح.",
+                    );
+                  }}
+                >
+                  افتحها تاني كمسودة
                 </Button>
               ) : null}
             </li>
