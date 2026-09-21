@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Card, PageTitle } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { TourPathsCard } from "@/components/tour-paths";
 import { remainingOnAdvance, underReviewOnAdvance } from "@/lib/logic";
 import { formatMoney } from "@/lib/money";
@@ -9,13 +9,13 @@ import { useStore } from "@/lib/store";
 import type { Role } from "@/lib/types";
 
 type NextAction = {
-  href?: string;
+  href: string;
   title: string;
   why: string;
   count?: number;
 };
 
-function actionsForRole(
+function primaryAction(
   role: Role,
   counts: {
     drafts: number;
@@ -23,87 +23,76 @@ function actionsForRole(
     supervisor: number;
     finance: number;
   },
-): NextAction[] {
+): NextAction {
   if (role === "engineer") {
-    const list: NextAction[] = [
-      {
-        href: "/app/capture",
-        title: "سجّل مصروف من الموقع",
-        why: "اكتب أو صوّر، وبعدين ابعتها للمشرف.",
-      },
-    ];
     if (counts.drafts > 0 || counts.returned > 0) {
-      list.unshift({
+      return {
         href: "/app/capture",
-        title: "كمّل المسودات وابعثها",
-        why: "عندك حاجات لسه ما راحتش للمشرف.",
+        title: "كمّل وابعث للمشرف",
+        why: "عندك مسودات لسه ما راحتش.",
         count: counts.drafts + counts.returned,
-      });
+      };
     }
-    return list;
+    return {
+      href: "/app/capture",
+      title: "سجّل مصروف",
+      why: "اكتب المبلغ وإيه اللي حصل.",
+    };
   }
 
   if (role === "supervisor") {
-    const list: NextAction[] = [];
     if (counts.supervisor > 0) {
-      list.push({
+      return {
         href: "/app/review",
-        title: "راجع الحركات المستنية",
-        why: "صحّح لو ناقص، وابعتها للحسابات.",
+        title: "راجع الحركات",
+        why: "صحّح وابعث للحسابات.",
         count: counts.supervisor,
-      });
+      };
     }
-    list.push({
+    return {
       href: "/app/capture",
-      title: "سجّل حركة جديدة",
-      why: "لو حاجة حصلت في الموقع دلوقتي.",
-    });
-    return list;
+      title: "سجّل مصروف",
+      why: "مفيش حاجة مستنية مراجعة دلوقتي.",
+    };
   }
 
   if (role === "finance") {
-    const list: NextAction[] = [];
     if (counts.finance > 0) {
-      list.push({
+      return {
         href: "/app/review",
         title: "اعتمد أو ارجع",
         why: "الاعتماد يخصم من العهدة.",
         count: counts.finance,
-      });
-    } else {
-      list.push({
-        href: "/app/review",
-        title: "افتح المراجعة",
-        why: "مفيش حاجة مستنية دلوقتي. راجع لو وصلت حركة جديدة.",
-      });
+      };
     }
-    return list;
+    return {
+      href: "/app/advances",
+      title: "شوف العهد",
+      why: "مفيش حركات مستنية اعتماد.",
+    };
   }
 
-  const list: NextAction[] = [];
+  if (counts.finance > 0) {
+    return {
+      href: "/app/review",
+      title: "فيه حاجات عند الحسابات",
+      why: "مستنية اعتماد.",
+      count: counts.finance,
+    };
+  }
   if (counts.supervisor > 0) {
-    list.push({
+    return {
       href: "/app/review",
       title: "فيه حاجات عند المشرف",
       why: "لسه ما وصلتش للحسابات.",
       count: counts.supervisor,
-    });
+    };
   }
-  if (counts.finance > 0) {
-    list.push({
-      href: "/app/review",
-      title: "فيه حاجات عند الحسابات",
-      why: "مستنية اعتماد أو إرجاع.",
-      count: counts.finance,
-    });
-  }
-  if (list.length === 0) {
-    list.push({
-      title: "مفيش حاجة معلّقة دلوقتي",
-      why: "شوف تحت: المتبقي في العهد، وإيه اللي اتخصم بعد الاعتماد.",
-    });
-  }
-  return list;
+  return {
+    href: "/app/advances",
+    title: "شوف فلوس العهد",
+    why: "مفيش حاجة معلّقة دلوقتي.",
+  };
 }
 
 export default function HomePage() {
@@ -131,121 +120,108 @@ export default function HomePage() {
     (c) => c.status === "with_finance",
   ).length;
 
-  const next = actionsForRole(currentUser.role, {
+  const next = primaryAction(currentUser.role, {
     drafts,
     returned,
     supervisor,
     finance,
   });
 
-  const showCompanyMoney = currentUser.role !== "engineer";
-  const showCompanyGaps = currentUser.role !== "engineer";
+  const totalRemaining = people.reduce((sum, person) => {
+    return (
+      sum +
+      state.advances
+        .filter((a) => a.personUserId === person.id)
+        .reduce((s, a) => s + remainingOnAdvance(a, state.expenses), 0)
+    );
+  }, 0);
+
+  const showTour =
+    currentUser.role === "owner" ||
+    currentUser.role === "finance" ||
+    currentUser.role === "supervisor";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <PageTitle
-          title="اعمل إيه دلوقتي"
-          hint="فلوس العهد: راحت فين؟ ومين مسؤول عن الخطوة الجاية؟"
-        />
-        <div className="space-y-3">
-          {next.map((item) => {
-            const card = (
-              <Card
-                className={
-                  item.href ? "transition hover:border-emerald-800" : undefined
-                }
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-stone-900">{item.title}</p>
-                    <p className="mt-1 text-sm text-stone-600">{item.why}</p>
-                  </div>
-                  {item.count != null && item.count > 0 ? (
-                    <span className="rounded-lg bg-emerald-900 px-2.5 py-1 text-sm text-white">
-                      {item.count}
-                    </span>
-                  ) : null}
-                </div>
-              </Card>
-            );
-            if (!item.href) {
-              return <div key={item.title}>{card}</div>;
-            }
-            return (
-              <Link key={item.href + item.title} href={item.href} className="block">
-                {card}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      <TourPathsCard />
-
-      <div>
-        <PageTitle
-          title={showCompanyMoney ? "الفلوس راحت فين" : "عهدي"}
-          hint={
-            showCompanyMoney
-              ? "عهد الموقع منفصلة عن فلوس العقد. المتبقي = اللي لسه مع الشخص."
-              : "تشوف عهدك أنت بس. أرصدة الباقي للمالك والحسابات."
-          }
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          {people.map((person) => {
-            const list = state.advances.filter(
-              (a) => a.personUserId === person.id,
-            );
-            const remaining = list.reduce(
-              (s, a) => s + remainingOnAdvance(a, state.expenses),
-              0,
-            );
-            return (
-              <Card key={person.id}>
-                <h2 className="font-medium">{person.name}</h2>
-                <p className="mt-1 text-2xl">{formatMoney(remaining)}</p>
-                <p className="text-xs text-stone-500">متبقي في العهد</p>
-                <ul className="mt-3 space-y-1 text-sm text-stone-600">
-                  {list.map((a) => (
-                    <li key={a.id}>
-                      {a.title}: متبقي{" "}
-                      {formatMoney(remainingOnAdvance(a, state.expenses))} —
-                      تحت المراجعة{" "}
-                      {formatMoney(underReviewOnAdvance(state.captures, a.id))}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            );
-          })}
-          {people.length === 0 ? (
-            <Card>
-              <p className="text-sm text-stone-500">مفيش عهد مفتوحة.</p>
-            </Card>
-          ) : null}
-        </div>
-      </div>
-
-      {showCompanyGaps ? (
-        <div>
-          <h2 className="mb-3 font-medium">إيه الناقص قبل الإقفال</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {(
-              [
-                ["عند المشرف", supervisor],
-                ["عند الحسابات", finance],
-              ] as const
-            ).map(([label, n]) => (
-              <Link key={label} href="/app/review">
-                <Card className="h-full transition hover:border-emerald-800">
-                  <p className="text-sm text-stone-500">{label}</p>
-                  <p className="text-2xl">{n}</p>
-                </Card>
-              </Link>
-            ))}
+        <p className="text-sm text-stone-500">اعمل إيه دلوقتي</p>
+        <Link
+          href={next.href}
+          className="mt-2 flex min-h-24 items-center justify-between gap-3 rounded-2xl bg-emerald-900 px-5 py-5 text-white shadow-sm transition hover:bg-emerald-800"
+        >
+          <div className="min-w-0">
+            <p className="text-xl font-semibold leading-snug">{next.title}</p>
+            <p className="mt-1 text-sm text-emerald-100">{next.why}</p>
           </div>
-        </div>
+          {next.count != null && next.count > 0 ? (
+            <span className="shrink-0 rounded-full bg-white px-3 py-1 text-lg font-semibold text-emerald-950">
+              {next.count}
+            </span>
+          ) : (
+            <span className="shrink-0 text-2xl text-emerald-200" aria-hidden>
+              ←
+            </span>
+          )}
+        </Link>
+      </div>
+
+      <Card>
+        <p className="text-sm text-stone-500">
+          {currentUser.role === "engineer" ? "متبقي في عهدك" : "متبقي في العهد"}
+        </p>
+        <p className="mt-1 text-3xl font-semibold tracking-tight text-stone-900">
+          {formatMoney(totalRemaining)}
+        </p>
+        <ul className="mt-4 space-y-2 border-t border-stone-100 pt-3 text-sm text-stone-600">
+          {people.flatMap((person) =>
+            state.advances
+              .filter((a) => a.personUserId === person.id)
+              .map((a) => (
+                <li key={a.id} className="flex justify-between gap-2">
+                  <span className="truncate">
+                    {currentUser.role === "engineer" ? a.title : person.name}
+                  </span>
+                  <span className="shrink-0 font-medium text-stone-800">
+                    {formatMoney(remainingOnAdvance(a, state.expenses))}
+                  </span>
+                </li>
+              )),
+          )}
+          {people.length === 0 ? (
+            <li className="text-stone-500">مفيش عهد مفتوحة.</li>
+          ) : null}
+        </ul>
+        {(supervisor > 0 || finance > 0) &&
+        currentUser.role !== "engineer" ? (
+          <p className="mt-3 text-xs text-stone-500">
+            تحت المراجعة:{" "}
+            {formatMoney(
+              people.reduce(
+                (s, person) =>
+                  s +
+                  state.advances
+                    .filter((a) => a.personUserId === person.id)
+                    .reduce(
+                      (x, a) =>
+                        x + underReviewOnAdvance(state.captures, a.id),
+                      0,
+                    ),
+                0,
+              ),
+            )}
+          </p>
+        ) : null}
+      </Card>
+
+      {showTour ? (
+        <details className="rounded-xl border border-stone-200 bg-white">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm text-stone-600 [&::-webkit-details-marker]:hidden">
+            جولة أوسع — بنود ومستخلص وبوابة
+          </summary>
+          <div className="border-t border-stone-100 px-2 pb-3 pt-1">
+            <TourPathsCard />
+          </div>
+        </details>
       ) : null}
     </div>
   );

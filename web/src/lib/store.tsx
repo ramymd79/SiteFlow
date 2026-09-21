@@ -84,6 +84,7 @@ type Store = {
     originalFileDataUrl?: string;
     movementType?: MovementType;
     createdBy?: string;
+    sendNow?: boolean;
   }) => string;
   updateCapture: (id: string, patch: Partial<Capture>, action: string) => void;
   sendToSupervisor: (id: string) => void;
@@ -340,6 +341,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addCapture: Store["addCapture"] = useCallback((input) => {
     const id = newId("c");
     setState((prev) => {
+      const status = input.sendNow ? "with_supervisor" : "draft";
       const capture: Capture = {
         id,
         projectId: input.projectId,
@@ -353,21 +355,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         description: input.description || input.originalText,
         movementType: input.movementType ?? "expense",
         pettyNoReceipt: input.pettyNoReceipt,
-        status: "draft",
+        status,
         supervisorNote: "",
         financeNote: "",
         returnReason: "",
         createdAt: nowIso(),
       };
-      return addAuditTo(
+      let next = addAuditTo(
         { ...prev, captures: [capture, ...prev.captures] },
         "إنشاء حركة",
         "capture",
         capture.id,
         "",
-        "draft",
+        status === "draft" ? "draft" : "with_supervisor",
         input.source,
       );
+      if (input.sendNow) {
+        next = addAuditTo(
+          next,
+          "إرسال للمشرف",
+          "capture",
+          capture.id,
+          "draft",
+          "with_supervisor",
+          "web",
+        );
+      }
+      return next;
     });
     return id;
   }, [addAuditTo]);

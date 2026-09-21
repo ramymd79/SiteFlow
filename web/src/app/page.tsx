@@ -7,11 +7,11 @@ import { DEMO_PASSWORD } from "@/lib/seed";
 import { useStore } from "@/lib/store";
 
 const ACCOUNTS = [
-  ["مهندس", "engineer@demo.siteflow", "يسجّل مصروف من الموقع — مسار العهد"],
-  ["مشرف", "supervisor@demo.siteflow", "يراجع ويبعت للحسابات"],
-  ["حسابات", "finance@demo.siteflow", "يعتمد المصروف، ويشوف المستخلص في الجولة"],
-  ["مالك", "owner@demo.siteflow", "يشوف الفلوس والنواقص والصورة الكبيرة"],
-  ["عميل", "client@demo.siteflow", "بوابة العميل فقط — مسار الصورة الكبيرة"],
+  ["مهندس", "engineer@demo.siteflow", "سجّل مصروف"],
+  ["مشرف", "supervisor@demo.siteflow", "راجع وابعث"],
+  ["حسابات", "finance@demo.siteflow", "اعتمد"],
+  ["مالك", "owner@demo.siteflow", "شوف الفلوس"],
+  ["عميل", "client@demo.siteflow", "بوابة فقط"],
 ] as const;
 
 export default function LoginPage() {
@@ -56,42 +56,42 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-5 rounded-2xl border border-stone-200 bg-white p-5">
-        <div>
-          <h1 className="text-2xl font-semibold">SiteFlow</h1>
-          <p className="mt-2 text-sm text-stone-700">
-            لب المنتج: فلوس العهد راحت فين؟ ومين مسؤول؟
-          </p>
-          <p className="mt-2 text-sm text-stone-600">
-            مسار العهد فاضي من المصروفات — ادخل كمهندس وسجّل أول حركة. بنود
-            المستخلص جاهزة في جولة الصورة الكبيرة. كلمة السر: {DEMO_PASSWORD}
-          </p>
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-semibold tracking-tight">SiteFlow</h1>
+          <p className="mt-2 text-sm text-stone-600">فلوس العهد راحت فين؟</p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-stone-900">اختار دورك</p>
-          <div className="grid gap-2">
-            {ACCOUNTS.map(([label, mail, hint]) => (
-              <button
-                key={mail}
-                type="button"
-                className="min-h-14 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-right hover:border-stone-500"
-                onClick={() => enterAs(mail)}
-              >
-                <span className="block text-base font-semibold text-stone-900">
+          {ACCOUNTS.map(([label, mail, hint]) => (
+            <button
+              key={mail}
+              type="button"
+              className="flex min-h-16 w-full items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3 text-right shadow-sm transition hover:border-emerald-800"
+              onClick={() => enterAs(mail)}
+            >
+              <span>
+                <span className="block text-lg font-semibold text-stone-900">
                   {label}
                 </span>
-                <span className="mt-0.5 block text-sm text-stone-600">
+                <span className="mt-0.5 block text-sm text-stone-500">
                   {hint}
                 </span>
-              </button>
-            ))}
-          </div>
+              </span>
+              <span className="text-stone-400" aria-hidden>
+                ←
+              </span>
+            </button>
+          ))}
         </div>
 
-        <details className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-          <summary className="cursor-pointer text-sm text-stone-700">
-            دخول يدوي بالبريد وكلمة السر
+        <p className="text-center text-xs text-stone-500">
+          كلمة السر: {DEMO_PASSWORD}
+        </p>
+
+        <details className="rounded-xl border border-stone-200 bg-white p-3">
+          <summary className="cursor-pointer text-sm text-stone-600">
+            دخول يدوي
           </summary>
           <form
             className="mt-3 space-y-3"

@@ -23,13 +23,13 @@ const LINKS: NavLink[] = [
   },
   {
     href: "/app/capture",
-    label: "سجّل مصروف",
+    label: "سجّل",
     roles: ["owner", "supervisor", "engineer"],
     group: "core",
   },
   {
     href: "/app/review",
-    label: "المراجعة",
+    label: "راجع",
     roles: ["owner", "finance", "supervisor"],
     group: "core",
   },
@@ -107,7 +107,7 @@ const LINKS: NavLink[] = [
   },
   {
     href: "/app/whatsapp",
-    label: "واتساب تجريبي",
+    label: "واتساب",
     roles: ["owner", "supervisor", "engineer"],
     group: "tour",
   },
@@ -146,7 +146,7 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 function linkClass(active: boolean): string {
-  return `block rounded-lg px-3 py-2 text-sm ${
+  return `block rounded-xl px-3 py-2.5 text-sm ${
     active
       ? "bg-emerald-900 text-white"
       : "text-stone-700 hover:bg-stone-100"
@@ -198,7 +198,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
           <button
             type="button"
-            className="rounded-lg bg-stone-900 px-3 py-2 text-xs font-medium text-white"
+            className="rounded-xl bg-stone-900 px-3 py-2 text-xs font-medium text-white"
             onClick={goOut}
           >
             خروج
@@ -219,6 +219,34 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const pageTitle =
     allVisible.find((l) => isActive(pathname, l.href))?.label ?? "SiteFlow";
 
+  const mainCore = coreLinks.filter((l) =>
+    ["/app", "/app/capture", "/app/review", "/app/advances"].includes(l.href),
+  );
+  const moreCore = coreLinks.filter(
+    (l) =>
+      !["/app", "/app/capture", "/app/review", "/app/advances"].includes(l.href),
+  );
+
+  const primaryBottom = (() => {
+    if (currentUser.role === "engineer") {
+      return coreLinks.filter((l) =>
+        ["/app", "/app/capture"].includes(l.href),
+      );
+    }
+    if (currentUser.role === "finance") {
+      return coreLinks.filter((l) =>
+        ["/app", "/app/review", "/app/advances"].includes(l.href),
+      );
+    }
+    return coreLinks.filter((l) =>
+      ["/app", "/app/capture", "/app/review"].includes(l.href),
+    );
+  })();
+
+  const moreBottom = allVisible.filter(
+    (l) => !primaryBottom.some((p) => p.href === l.href),
+  );
+
   const accountButtons = (
     <div className="space-y-2 border-t border-stone-200 p-3">
       {syncRoomId ? (
@@ -229,7 +257,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {currentUser.role === "owner" ? (
         <button
           type="button"
-          className="w-full rounded-lg bg-stone-100 px-3 py-3 text-sm"
+          className="w-full rounded-xl bg-stone-100 px-3 py-3 text-sm"
           onClick={() => resetDemo()}
         >
           ابدأ من الصفر
@@ -237,7 +265,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       ) : null}
       <button
         type="button"
-        className="w-full rounded-lg bg-stone-900 px-3 py-3 text-sm font-medium text-white"
+        className="w-full rounded-xl bg-stone-900 px-3 py-3 text-sm font-medium text-white"
         onClick={goOut}
       >
         خروج
@@ -245,102 +273,95 @@ export function Shell({ children }: { children: React.ReactNode }) {
     </div>
   );
 
-  const primaryLinks = coreLinks.filter((l) =>
-    ["/app", "/app/capture", "/app/review"].includes(l.href),
-  );
-  const moreLinks = allVisible.filter(
-    (l) => !["/app", "/app/capture", "/app/review"].includes(l.href),
-  );
-
   return (
     <div className="min-h-dvh bg-stone-100 text-stone-900">
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white px-4 py-3 md:hidden">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs text-stone-500">SiteFlow</p>
             <p className="truncate text-lg font-semibold">{pageTitle}</p>
             <p className="truncate text-xs text-stone-500">
-              {currentUser.name} — {roleLabel(currentUser.role)}
+              {roleLabel(currentUser.role)}
             </p>
           </div>
-          <div className="flex shrink-0 flex-col gap-2">
-            {currentUser.role === "owner" ? (
-              <button
-                type="button"
-                className="rounded-lg bg-stone-100 px-3 py-2 text-xs font-medium text-stone-800"
-                onClick={() => resetDemo()}
-              >
-                من الصفر
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="rounded-lg bg-stone-900 px-3 py-2 text-xs font-medium text-white"
-              onClick={goOut}
-            >
-              خروج
-            </button>
-          </div>
+          <button
+            type="button"
+            className="shrink-0 rounded-xl bg-stone-900 px-3 py-2 text-xs font-medium text-white"
+            onClick={goOut}
+          >
+            خروج
+          </button>
         </div>
       </header>
 
-      <aside className="fixed inset-y-0 right-0 z-20 hidden w-60 flex-col border-l border-stone-200 bg-white md:flex">
+      <aside className="fixed inset-y-0 right-0 z-20 hidden w-56 flex-col border-l border-stone-200 bg-white md:flex">
         <div className="border-b border-stone-200 p-4">
           <p className="text-lg font-semibold">SiteFlow</p>
-          <p className="mt-1 text-xs text-stone-500">
-            لب المنتج: فلوس العهد. باقي الشاشات جولة تجربة.
-          </p>
-          <p className="mt-2 text-xs text-stone-500">
+          <p className="mt-2 text-sm text-stone-600">
             {currentUser.name}
-            <br />
+          </p>
+          <p className="text-xs text-stone-500">
             {roleLabel(currentUser.role)}
           </p>
         </div>
-        <nav className="flex-1 space-y-4 overflow-y-auto p-2">
-          <div className="space-y-1">
-            <p className="px-3 text-xs font-medium text-stone-500">
-              لب المنتج — العهد
-            </p>
-            {coreLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={linkClass(isActive(pathname, l.href))}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
+        <nav className="flex-1 space-y-1 overflow-y-auto p-2">
+          {mainCore.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={linkClass(isActive(pathname, l.href))}
+            >
+              {l.label === "سجّل" ? "سجّل مصروف" : l.label === "راجع" ? "المراجعة" : l.label}
+            </Link>
+          ))}
+          {moreCore.length > 0 ? (
+            <details className="pt-2">
+              <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-stone-500 [&::-webkit-details-marker]:hidden">
+                المزيد
+              </summary>
+              <div className="space-y-1">
+                {moreCore.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={linkClass(isActive(pathname, l.href))}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            </details>
+          ) : null}
           {tourLinks.length > 0 ? (
-            <div className="space-y-1 border-t border-stone-200 pt-3">
-              <p className="px-3 text-xs font-medium text-amber-800">
-                باقي الصورة الكبيرة — للتجربة
-              </p>
-              {tourLinks.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className={linkClass(isActive(pathname, l.href))}
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
+            <details className="border-t border-stone-200 pt-2">
+              <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-amber-800 [&::-webkit-details-marker]:hidden">
+                جولة أوسع
+              </summary>
+              <div className="space-y-1">
+                {tourLinks.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={linkClass(isActive(pathname, l.href))}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            </details>
           ) : null}
         </nav>
         {accountButtons}
       </aside>
 
-      <main className="p-4 pb-28 md:mr-60 md:p-6 md:pb-6">{children}</main>
+      <main className="p-4 pb-28 md:mr-56 md:p-6 md:pb-6">{children}</main>
 
       <nav
-        className={`fixed inset-x-0 bottom-0 z-30 grid border-t border-stone-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden ${
-          primaryLinks.length + (moreLinks.length > 0 ? 1 : 0) >= 4
-            ? "grid-cols-4"
-            : "grid-cols-3"
-        }`}
+        className="fixed inset-x-0 bottom-0 z-30 grid border-t border-stone-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+        style={{
+          gridTemplateColumns: `repeat(${primaryBottom.length + (moreBottom.length > 0 ? 1 : 0)}, minmax(0, 1fr))`,
+        }}
       >
-        {primaryLinks.map((l) => (
+        {primaryBottom.map((l) => (
           <Link
             key={l.href}
             href={l.href}
@@ -353,28 +374,25 @@ export function Shell({ children }: { children: React.ReactNode }) {
             {l.label}
           </Link>
         ))}
-        {moreLinks.length > 0 ? (
+        {moreBottom.length > 0 ? (
           <details className="relative min-h-14">
             <summary
               className={`flex h-full cursor-pointer list-none items-center justify-center px-1 py-2 text-center text-xs leading-tight text-stone-600 [&::-webkit-details-marker]:hidden ${
-                moreLinks.some((l) => isActive(pathname, l.href))
+                moreBottom.some((l) => isActive(pathname, l.href))
                   ? "font-semibold text-emerald-900"
                   : ""
               }`}
             >
               المزيد
             </summary>
-            <div className="absolute bottom-full left-0 right-0 mb-1 max-h-[70vh] overflow-y-auto rounded-t-xl border border-stone-200 bg-white p-2 shadow-lg">
-              <p className="px-3 py-1 text-xs font-medium text-stone-500">
-                لب العهد
-              </p>
-              {moreLinks
+            <div className="absolute bottom-full left-0 right-0 mb-1 max-h-[70vh] overflow-y-auto rounded-t-2xl border border-stone-200 bg-white p-2 shadow-lg">
+              {moreBottom
                 .filter((l) => l.group === "core")
                 .map((l) => (
                   <Link
                     key={l.href}
                     href={l.href}
-                    className={`block rounded-lg px-3 py-3 text-sm ${
+                    className={`block rounded-xl px-3 py-3 text-sm ${
                       isActive(pathname, l.href)
                         ? "bg-emerald-50 font-medium text-emerald-950"
                         : "text-stone-700"
@@ -383,24 +401,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
                     {l.label}
                   </Link>
                 ))}
-              <p className="mt-2 px-3 py-1 text-xs font-medium text-amber-800">
-                جولة الصورة الكبيرة
-              </p>
-              {moreLinks
-                .filter((l) => l.group === "tour")
-                .map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className={`block rounded-lg px-3 py-3 text-sm ${
-                      isActive(pathname, l.href)
-                        ? "bg-amber-50 font-medium text-amber-950"
-                        : "text-stone-700"
-                    }`}
-                  >
-                    {l.label}
-                  </Link>
-                ))}
+              {moreBottom.some((l) => l.group === "tour") ? (
+                <>
+                  <p className="mt-2 px-3 py-1 text-xs font-medium text-amber-800">
+                    جولة أوسع
+                  </p>
+                  {moreBottom
+                    .filter((l) => l.group === "tour")
+                    .map((l) => (
+                      <Link
+                        key={l.href}
+                        href={l.href}
+                        className={`block rounded-xl px-3 py-3 text-sm ${
+                          isActive(pathname, l.href)
+                            ? "bg-amber-50 font-medium text-amber-950"
+                            : "text-stone-700"
+                        }`}
+                      >
+                        {l.label}
+                      </Link>
+                    ))}
+                </>
+              ) : null}
             </div>
           </details>
         ) : null}
