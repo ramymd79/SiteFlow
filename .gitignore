@@ -7,6 +7,9 @@ credentials.json
 node_modules/
 web/.next/
 web/out/
+daftar/.next/
+daftar/out/
+daftar/node_modules/
 .DS_Store
 Thumbs.db
 .vscode/
